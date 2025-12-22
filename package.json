@@ -1,6 +1,6 @@
 {
   "name": "smart-hydro-electric-estimator-(水電估價單)",
-  "private": true,
+  "private": false,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
