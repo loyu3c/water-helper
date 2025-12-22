@@ -1,0 +1,7 @@
+{
+  "name": "Smart Hydro-Electric Estimator (水電估價單)",
+  "description": "An AI-powered tool for plumbing and electrical contractors to convert photo quotes into spreadsheets with real-time market price verification via Google Search.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
