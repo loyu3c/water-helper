@@ -14,7 +14,7 @@ const App: React.FC = () => {
   const [textInput, setTextInput] = useState('');
   const [taxRate, setTaxRate] = useState(5);
   const [managementRate, setManagementRate] = useState(10);
-  
+
   const [headerInfo, setHeaderInfo] = useState<QuoteHeaderInfo>({
     projectName: '',
     vendorName: '',
@@ -139,7 +139,9 @@ const App: React.FC = () => {
       setItems(result.items);
       setSources(result.sources);
     } catch (err) {
-      setError("分析失敗，請檢查網路或 API 設定。");
+      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(`分析失敗: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -155,7 +157,9 @@ const App: React.FC = () => {
       setItems(result.items);
       setSources(result.sources);
     } catch (err) {
-      setError("解析文字失敗。");
+      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(`解析文字失敗: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -188,7 +192,7 @@ const App: React.FC = () => {
 
   const exportToExcel = () => {
     if (items.length === 0) return;
-    
+
     const bom = "\uFEFF";
     let csv = bom;
 
@@ -208,7 +212,7 @@ const App: React.FC = () => {
     csv += `${f("客戶姓名")},${f(headerInfo.clientContact)},${f("聯絡電話")},${f(headerInfo.clientPhone)},${f("統一編號")},${f(headerInfo.clientTaxId)}\n\n`;
 
     csv += `${f("項次")},${f("名稱")},${f("規格/型號")},${f("數量")},${f("單位")},${f("單價 (TWD)")},${f("小計 (TWD)")},${f("廠牌")},${f("備註")}\n`;
-    
+
     let subtotalSum = 0;
     items.forEach((item, index) => {
       const subtotal = item.quantity * item.marketPrice;
@@ -236,7 +240,7 @@ const App: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `${headerInfo.projectName || '水電估價單'}_${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute('download', `${headerInfo.projectName || '水電估價單'}_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -246,16 +250,16 @@ const App: React.FC = () => {
     const element = quoteRef.current;
     if (!element) return;
 
-    const dateStr = new Date().toISOString().slice(0,10);
+    const dateStr = new Date().toISOString().slice(0, 10);
     const fileName = `${headerInfo.projectName || '水電估價單'}_${dateStr}.pdf`;
 
     const opt = {
       margin: 5,
       filename: fileName,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { 
-        scale: 2, 
-        useCORS: true, 
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
         logging: false,
         letterRendering: true,
         windowWidth: 1400 // 增加視窗寬度以改善橫向版面渲染
@@ -405,11 +409,11 @@ const App: React.FC = () => {
               <p className="text-xs text-slate-400">報價日期：{new Date().toLocaleDateString()}</p>
             </div>
           </div>
-          
-          <ItemTable 
-            items={items} 
-            onItemsChange={setItems} 
-            onAddItem={addItem} 
+
+          <ItemTable
+            items={items}
+            onItemsChange={setItems}
+            onAddItem={addItem}
             taxRate={taxRate}
             onTaxRateChange={setTaxRate}
             managementRate={managementRate}
@@ -418,8 +422,8 @@ const App: React.FC = () => {
 
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
-               <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">市場搜尋參考來源</h3>
-               <div className="flex flex-wrap gap-2">
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">市場搜尋參考來源</h3>
+              <div className="flex flex-wrap gap-2">
                 {sources.length > 0 ? sources.map((s, i) => (
                   <a key={i} href={s.uri} target="_blank" rel="noreferrer" className="bg-white border px-3 py-1.5 rounded-lg text-[10px] text-slate-600 hover:text-blue-600 hover:border-blue-300 transition-all shadow-sm flex items-center gap-1.5 truncate max-w-[200px]">
                     {s.title}

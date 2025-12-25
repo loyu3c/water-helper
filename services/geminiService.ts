@@ -6,14 +6,14 @@ const API_KEY = process.env.API_KEY || "";
 
 const processItemsWithSearch = async (rawItems: any[]): Promise<AnalysisResult> => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
-  
+
   const searchPrompt = `根據以下水電材料清單，使用 Google 搜尋目前台灣市場的最低價格、推薦廠牌、規格及供應商資訊。
   清單：${JSON.stringify(rawItems)}
   
   請回傳一個 JSON 陣列，每個物件包含：id, name, spec, quantity, unit, marketPrice (數字), brand (建議廠牌), remarks (相關備註或注意事項), supplier, sourceUrl (網址)。`;
 
   const searchResponse = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-2.0-flash-exp',
     contents: searchPrompt,
     config: {
       tools: [{ googleSearch: {} }],
@@ -41,7 +41,7 @@ const processItemsWithSearch = async (rawItems: any[]): Promise<AnalysisResult> 
   });
 
   const items: EstimationItem[] = JSON.parse(searchResponse.text || "[]");
-  
+
   const groundingChunks = searchResponse.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
   const sources: GroundingSource[] = groundingChunks
     .filter(chunk => chunk.web)
@@ -56,7 +56,7 @@ const processItemsWithSearch = async (rawItems: any[]): Promise<AnalysisResult> 
 export const analyzeImageAndSearch = async (base64Image: string): Promise<AnalysisResult> => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   const ocrResponse = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-2.0-flash-exp',
     contents: [
       {
         parts: [
@@ -90,7 +90,7 @@ export const analyzeImageAndSearch = async (base64Image: string): Promise<Analys
 export const analyzeTextAndSearch = async (textInput: string): Promise<AnalysisResult> => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   const parseResponse = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-2.0-flash-exp',
     contents: `提取水電材料清單：\n"${textInput}"`,
     config: {
       responseMimeType: "application/json",
