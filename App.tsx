@@ -142,7 +142,9 @@ const App: React.FC = () => {
       console.error(err);
       let errorMessage = err instanceof Error ? err.message : String(err);
       if (errorMessage.includes('429') || errorMessage.includes('ResourceExhausted') || errorMessage.includes('current quota')) {
-        errorMessage = '⚠️ 系統繁忙或已達免費額度上限，正在嘗試重試，請稍後再試。 (API Rate Limit Exceeded)';
+        errorMessage = '⚠️ 系統繁忙或已達免費額度上限，正在嘗試重試，請稍後再試。';
+      } else if (errorMessage.includes('404') || errorMessage.includes('not found')) {
+        errorMessage = '⚠️ 找不到指定的 AI 模型，可能該模型暫時無法使用。';
       }
       setError(`分析失敗: ${errorMessage}`);
     } finally {
@@ -163,7 +165,9 @@ const App: React.FC = () => {
       console.error(err);
       let errorMessage = err instanceof Error ? err.message : String(err);
       if (errorMessage.includes('429') || errorMessage.includes('ResourceExhausted') || errorMessage.includes('current quota')) {
-        errorMessage = '⚠️ 系統繁忙或已達免費額度上限，請稍後再試。 (API Rate Limit Exceeded)';
+        errorMessage = '⚠️ 系統繁忙或已達免費額度上限，請稍後再試。';
+      } else if (errorMessage.includes('404') || errorMessage.includes('not found')) {
+        errorMessage = '⚠️ 找不到指定的 AI 模型，可能該模型暫時無法使用。';
       }
       setError(`解析文字失敗: ${errorMessage}`);
     } finally {
