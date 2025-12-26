@@ -113,7 +113,7 @@ const processItemsWithSearch = async (rawItems: any[]): Promise<AnalysisResult> 
 export const analyzeImageAndSearch = async (base64Image: string): Promise<AnalysisResult> => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   const ocrResponse = await callWithRetry(() => ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.0-flash-exp',
     contents: [
       {
         parts: [
