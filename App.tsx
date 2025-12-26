@@ -15,6 +15,15 @@ const App: React.FC = () => {
   const [taxRate, setTaxRate] = useState(5);
   const [managementRate, setManagementRate] = useState(10);
 
+  // Authorization State
+  const [isAuthorized, setIsAuthorized] = useState(() => {
+    return typeof window !== 'undefined' && localStorage.getItem('auth_passed') === 'true';
+  });
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authCodeInput, setAuthCodeInput] = useState('');
+  const [authError, setAuthError] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'photo' | 'text' | null>(null);
+
   const [headerInfo, setHeaderInfo] = useState<QuoteHeaderInfo>({
     projectName: '',
     vendorName: '',
@@ -164,6 +173,13 @@ const App: React.FC = () => {
 
   const handleTextSubmit = async () => {
     if (!textInput.trim()) return;
+
+    if (!isAuthorized) {
+      setPendingAction('text');
+      setShowAuthModal(true);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setPreviewImage(null);
@@ -182,6 +198,41 @@ const App: React.FC = () => {
       setError(`解析文字失敗: ${errorMessage}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const verifyAuthCode = () => {
+    if (authCodeInput === '0831') {
+      setIsAuthorized(true);
+      localStorage.setItem('auth_passed', 'true');
+      setShowAuthModal(false);
+      setAuthCodeInput('');
+      setAuthError(false);
+
+      if (pendingAction === 'photo') {
+        fileInputRef.current?.click();
+      } else if (pendingAction === 'text') {
+        handleTextSubmit();
+      }
+      setPendingAction(null);
+    } else {
+      setAuthError(true);
+    }
+  };
+
+  const handleAuthCancel = () => {
+    setShowAuthModal(false);
+    setAuthCodeInput('');
+    setAuthError(false);
+    setPendingAction(null);
+  };
+
+  const handlePhotoClick = () => {
+    if (!isAuthorized) {
+      setPendingAction('photo');
+      setShowAuthModal(true);
+    } else {
+      fileInputRef.current?.click();
     }
   };
 
@@ -389,7 +440,7 @@ const App: React.FC = () => {
             {inputMode === 'photo' ? (
               <div className="text-center py-4">
                 <input type="file" accept="image/*" capture="environment" className="hidden" ref={fileInputRef} onChange={handleFileUpload} />
-                <button onClick={() => fileInputRef.current?.click()} disabled={loading} className="bg-blue-600 text-white px-10 py-4 rounded-full font-black shadow-xl hover:bg-blue-700 transition-all active:scale-95 flex items-center gap-3 mx-auto">
+                <button onClick={handlePhotoClick} disabled={loading} className="bg-blue-600 text-white px-10 py-4 rounded-full font-black shadow-xl hover:bg-blue-700 transition-all active:scale-95 flex items-center gap-3 mx-auto">
                   {loading ? (
                     <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                   ) : <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /></svg>}
@@ -469,6 +520,39 @@ const App: React.FC = () => {
           </div>
         </div>
       </div>
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white p-6 rounded-2xl w-full max-w-sm shadow-2xl animate-bounce-in">
+            <h3 className="text-xl font-black text-center mb-2">請輸入授權碼</h3>
+            <p className="text-center text-slate-500 text-sm mb-6">此功能僅限授權用戶使用</p>
+
+            <input
+              type="password"
+              inputMode="numeric"
+              className={`w-full text-center text-2xl font-bold tracking-widest py-3 border-2 rounded-xl outline-none transition-colors ${authError ? 'border-red-500 bg-red-50' : 'border-slate-200 focus:border-blue-500'}`}
+              placeholder="••••"
+              value={authCodeInput}
+              onChange={(e) => {
+                setAuthCodeInput(e.target.value);
+                setAuthError(false);
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && verifyAuthCode()}
+              autoFocus
+            />
+            {authError && <p className="text-red-500 text-center text-xs font-bold mt-2">授權碼錯誤，請重新輸入</p>}
+
+            <div className="flex gap-3 mt-8">
+              <button onClick={handleAuthCancel} className="flex-1 py-3 text-slate-400 font-bold hover:bg-slate-50 rounded-xl transition-colors">
+                取消
+              </button>
+              <button onClick={verifyAuthCode} className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 active:scale-95 transition-all">
+                確認
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
