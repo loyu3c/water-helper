@@ -10,6 +10,7 @@ interface ItemTableProps {
   onTaxRateChange: (rate: number) => void;
   managementRate: number;
   onManagementRateChange: (rate: number) => void;
+  readOnly?: boolean;
 }
 
 const ItemTable: React.FC<ItemTableProps> = ({
@@ -19,18 +20,22 @@ const ItemTable: React.FC<ItemTableProps> = ({
   taxRate,
   onTaxRateChange,
   managementRate,
-  onManagementRateChange
+  onManagementRateChange,
+  readOnly = false
 }) => {
   const updateItem = (id: string, field: keyof EstimationItem, value: string | number) => {
+    if (readOnly) return;
     const updated = items.map(item => item.id === id ? { ...item, [field]: value } : item);
     onItemsChange(updated);
   };
 
   const removeItem = (id: string) => {
+    if (readOnly) return;
     onItemsChange(items.filter(item => item.id !== id));
   };
 
   const moveItem = (index: number, direction: 'up' | 'down') => {
+    if (readOnly) return;
     if (direction === 'up' && index === 0) return;
     if (direction === 'down' && index === items.length - 1) return;
 
@@ -50,19 +55,19 @@ const ItemTable: React.FC<ItemTableProps> = ({
 
   return (
     <div className="mt-6">
-      <div className="rounded-lg border border-slate-200 shadow-sm overflow-visible">
-        <table className="w-full text-left border-collapse min-w-full">
+      <div className="rounded-lg border border-slate-200 shadow-sm overflow-x-auto">
+        <table className="w-full text-left border-collapse min-w-[1000px]">
           <thead>
             <tr className="bg-slate-900 text-white">
-              <th className="p-3 border border-slate-700 font-bold w-16 text-center text-sm">項次</th>
-              <th className="p-3 border border-slate-700 font-bold w-48 text-sm">工程品項名稱</th>
-              <th className="p-3 border border-slate-700 font-bold text-sm">詳細規格 / 型號</th>
-              <th className="p-3 border border-slate-700 font-bold w-20 text-center text-sm">數量</th>
-              <th className="p-3 border border-slate-700 font-bold w-20 text-center text-sm">單位</th>
-              <th className="p-3 border border-slate-700 font-bold w-32 text-right text-sm">市場單價</th>
-              <th className="p-3 border border-slate-700 font-bold w-32 text-right text-sm">小計</th>
-              <th className="p-3 border border-slate-700 font-bold w-48 text-sm">廠牌 / 備註</th>
-              <th className="p-3 border border-slate-700 font-bold no-print w-24 text-center text-sm">操作</th>
+              <th className="p-3 border border-slate-700 font-bold w-16 text-center text-sm whitespace-nowrap">項次</th>
+              <th className="p-3 border border-slate-700 font-bold w-48 text-sm whitespace-nowrap">工程品項名稱</th>
+              <th className={`p-3 border border-slate-700 font-bold text-sm whitespace-nowrap ${readOnly ? 'w-[30%]' : ''}`}>詳細規格 / 型號</th>
+              <th className="p-3 border border-slate-700 font-bold w-20 text-center text-sm whitespace-nowrap">數量</th>
+              <th className="p-3 border border-slate-700 font-bold w-20 text-center text-sm whitespace-nowrap">單位</th>
+              <th className="p-3 border border-slate-700 font-bold w-32 text-right text-sm whitespace-nowrap">市場單價</th>
+              <th className="p-3 border border-slate-700 font-bold w-32 text-right text-sm whitespace-nowrap">小計</th>
+              <th className="p-3 border border-slate-700 font-bold w-48 text-sm whitespace-nowrap">廠牌 / 備註</th>
+              {!readOnly && <th className="p-3 border border-slate-700 font-bold no-print w-24 text-center text-sm whitespace-nowrap">操作</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
@@ -72,21 +77,21 @@ const ItemTable: React.FC<ItemTableProps> = ({
                   {index + 1}
                 </td>
                 <td className="p-1 border border-slate-200">
-                  <input type="text" value={item.name} onChange={(e) => updateItem(item.id, 'name', e.target.value)} className={`${inputCellClass} font-bold`} />
+                  <input disabled={readOnly} type="text" value={item.name} onChange={(e) => updateItem(item.id, 'name', e.target.value)} className={`${inputCellClass} font-bold`} />
                 </td>
                 <td className="p-1 border border-slate-200">
-                  <input type="text" value={item.spec} onChange={(e) => updateItem(item.id, 'spec', e.target.value)} className={`${inputCellClass} text-slate-600`} />
+                  <input disabled={readOnly} type="text" value={item.spec} onChange={(e) => updateItem(item.id, 'spec', e.target.value)} className={`${inputCellClass} text-slate-600`} />
                 </td>
                 <td className="p-1 border border-slate-200">
-                  <input type="number" value={item.quantity} onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)} className={`${inputCellClass} text-center font-mono`} />
+                  <input disabled={readOnly} type="number" value={item.quantity} onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)} className={`${inputCellClass} text-center font-mono`} />
                 </td>
                 <td className="p-1 border border-slate-200">
-                  <input type="text" value={item.unit} onChange={(e) => updateItem(item.id, 'unit', e.target.value)} className={`${inputCellClass} text-center text-slate-500`} />
+                  <input disabled={readOnly} type="text" value={item.unit} onChange={(e) => updateItem(item.id, 'unit', e.target.value)} className={`${inputCellClass} text-center text-slate-500`} />
                 </td>
                 <td className="p-1 border border-slate-200">
                   <div className="flex items-center justify-end px-2">
                     <span className="text-slate-400 text-xs mr-1">$</span>
-                    <input type="number" value={item.marketPrice} onChange={(e) => updateItem(item.id, 'marketPrice', parseFloat(e.target.value) || 0)} className="bg-transparent border-none p-1.5 focus:bg-white outline-none font-bold text-blue-600 text-right w-24 font-mono" />
+                    <input disabled={readOnly} type="number" value={item.marketPrice} onChange={(e) => updateItem(item.id, 'marketPrice', parseFloat(e.target.value) || 0)} className="bg-transparent border-none p-1.5 focus:bg-white outline-none font-bold text-blue-600 text-right w-24 font-mono" />
                   </div>
                 </td>
                 <td className="p-3 border border-slate-200 font-black text-right bg-slate-50/50">
@@ -96,6 +101,7 @@ const ItemTable: React.FC<ItemTableProps> = ({
                 <td className="p-1 border border-slate-200">
                   <div className="flex flex-col gap-1">
                     <input
+                      disabled={readOnly}
                       type="text"
                       value={item.brand}
                       onChange={(e) => updateItem(item.id, 'brand', e.target.value)}
@@ -103,6 +109,7 @@ const ItemTable: React.FC<ItemTableProps> = ({
                       placeholder="廠牌"
                     />
                     <input
+                      disabled={readOnly}
                       type="text"
                       value={item.remarks}
                       onChange={(e) => updateItem(item.id, 'remarks', e.target.value)}
@@ -111,39 +118,43 @@ const ItemTable: React.FC<ItemTableProps> = ({
                     />
                   </div>
                 </td>
-                <td className="p-1 border border-slate-200 text-center no-print">
-                  <div className="flex items-center justify-center gap-1">
-                    <button
-                      onClick={() => moveItem(index, 'up')}
-                      disabled={index === 0}
-                      className="text-slate-400 hover:text-blue-600 disabled:opacity-20 transition-colors p-1"
-                      title="上移"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                    </button>
-                    <button
-                      onClick={() => moveItem(index, 'down')}
-                      disabled={index === items.length - 1}
-                      className="text-slate-400 hover:text-blue-600 disabled:opacity-20 transition-colors p-1"
-                      title="下移"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                    <button onClick={() => removeItem(item.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1" title="刪除">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
-                  </div>
-                </td>
+                {!readOnly && (
+                  <td className="p-1 border border-slate-200 text-center no-print">
+                    <div className="flex items-center justify-center gap-1">
+                      <button
+                        onClick={() => moveItem(index, 'up')}
+                        disabled={index === 0}
+                        className="text-slate-400 hover:text-blue-600 disabled:opacity-20 transition-colors p-1"
+                        title="上移"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+                      </button>
+                      <button
+                        onClick={() => moveItem(index, 'down')}
+                        disabled={index === items.length - 1}
+                        className="text-slate-400 hover:text-blue-600 disabled:opacity-20 transition-colors p-1"
+                        title="下移"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      </button>
+                      <button onClick={() => removeItem(item.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1" title="刪除">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
-            <tr className="no-print">
-              <td colSpan={9} className="p-4 text-center border bg-slate-50">
-                <button onClick={onAddItem} className="bg-white hover:bg-slate-100 text-blue-600 px-6 py-2 rounded-lg text-xs font-black border border-blue-200 shadow-sm transition-all flex items-center gap-2 mx-auto active:scale-95">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                  手動新增工程品項
-                </button>
-              </td>
-            </tr>
+            {!readOnly && (
+              <tr className="no-print">
+                <td colSpan={9} className="p-4 text-center border bg-slate-50">
+                  <button onClick={onAddItem} className="bg-white hover:bg-slate-100 text-blue-600 px-6 py-2 rounded-lg text-xs font-black border border-blue-200 shadow-sm transition-all flex items-center gap-2 mx-auto active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                    手動新增工程品項
+                  </button>
+                </td>
+              </tr>
+            )}
           </tbody>
           <tfoot className="border-t-2 border-slate-900">
             {/* 未稅合計 */}

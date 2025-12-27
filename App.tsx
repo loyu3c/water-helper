@@ -14,6 +14,7 @@ const App: React.FC = () => {
   const [textInput, setTextInput] = useState('');
   const [taxRate, setTaxRate] = useState(5);
   const [managementRate, setManagementRate] = useState(10);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Authorization State
   const [isAuthorized, setIsAuthorized] = useState(() => {
@@ -318,52 +319,60 @@ const App: React.FC = () => {
   };
 
   const exportPDF = () => {
-    const element = quoteRef.current;
-    if (!element) return;
+    setIsExporting(true);
+    setTimeout(() => {
+      const element = quoteRef.current;
+      if (!element) {
+        setIsExporting(false);
+        return;
+      }
 
-    const dateStr = new Date().toISOString().slice(0, 10);
-    const fileName = `${headerInfo.projectName || '水電估價單'}_${dateStr}.pdf`;
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const fileName = `${headerInfo.projectName || '水電估價單'}_${dateStr}.pdf`;
 
-    const opt = {
-      margin: 5,
-      filename: fileName,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        letterRendering: true,
-        windowWidth: 1400 // 增加視窗寬度以改善橫向版面渲染
-      },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-      pagebreak: { mode: ['css'] } // 只保留 css 模式，避免 legacy 造成的異常空白
-    };
+      const opt = {
+        margin: 5,
+        filename: fileName,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          letterRendering: true,
+          scrollY: 0
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+        pagebreak: { mode: ['css'] }
+      };
 
-    // @ts-ignore
-    html2pdf().from(element).set(opt).save();
+      // @ts-ignore
+      html2pdf().from(element).set(opt).save().then(() => {
+        setIsExporting(false);
+      });
+    }, 100);
   };
 
   const inputClasses = "w-full bg-black text-white border-b border-slate-700 focus:border-blue-500 outline-none py-2 px-3 rounded-t-md transition-colors placeholder:text-slate-500";
 
   return (
     <div className="min-h-screen pb-20 bg-slate-100">
-      <header className="bg-slate-900 text-white p-6 shadow-lg sticky top-0 z-50 no-print">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-600 p-2 rounded-lg">
+      <header className="bg-slate-900 text-white p-4 shadow-lg sticky top-0 z-50 no-print">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0">
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="bg-blue-600 p-2 rounded-lg shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <h1 className="text-xl font-bold tracking-tight">AI 水電智能估價助手</h1>
+            <h1 className="text-lg md:text-xl font-bold tracking-tight whitespace-nowrap">AI 水電智能估價助手</h1>
           </div>
-          <div className="flex gap-2 items-center">
-            <button onClick={generateTestData} className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm font-bold shadow-lg transition-all active:scale-95">
+          <div className="flex gap-2 items-center w-full md:w-auto overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+            <button onClick={generateTestData} className="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg flex items-center gap-2 text-xs md:text-sm font-bold shadow-lg transition-all active:scale-95 whitespace-nowrap shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
               生成測試資料
             </button>
             {items.length > 0 && (
-              <button onClick={clearAllData} className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm font-bold shadow-lg transition-all active:scale-95">
+              <button onClick={clearAllData} className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg flex items-center gap-2 text-xs md:text-sm font-bold shadow-lg transition-all active:scale-95 whitespace-nowrap shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
@@ -372,13 +381,13 @@ const App: React.FC = () => {
             )}
             {items.length > 0 && (
               <>
-                <button onClick={exportToExcel} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm font-bold shadow-lg transition-all active:scale-95">
+                <button onClick={exportToExcel} className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg flex items-center gap-2 text-xs md:text-sm font-bold shadow-lg transition-all active:scale-95 whitespace-nowrap shrink-0">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                   匯出 Excel
                 </button>
-                <button onClick={exportPDF} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm font-bold shadow-lg transition-all active:scale-95">
+                <button onClick={exportPDF} className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 md:px-4 md:py-2.5 rounded-lg flex items-center gap-2 text-xs md:text-sm font-bold shadow-lg transition-all active:scale-95 whitespace-nowrap shrink-0">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                   匯出 PDF
                 </button>
@@ -469,23 +478,28 @@ const App: React.FC = () => {
       </main>
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 mb-20">
-        <div ref={quoteRef} className="bg-white p-6 md:p-8 rounded-lg shadow-2xl border border-slate-300 pdf-container mx-auto">
-          <div className="flex justify-between items-start border-b-4 border-slate-900 pb-6 mb-8">
-            <div className="flex-1">
-              <h1 className="text-3xl font-black text-slate-900 mb-4 tracking-tighter">{headerInfo.projectName || "水電工程估價單"}</h1>
-              <div className="space-y-1">
-                <p className="text-sm"><strong>承包商：</strong>{headerInfo.vendorName}</p>
-                <p className="text-sm"><strong>負責人/聯絡：</strong>{headerInfo.vendorContact} {headerInfo.vendorPhone ? `(${headerInfo.vendorPhone})` : ''}</p>
+        <div ref={quoteRef} className={`bg-white p-6 md:p-8 rounded-lg border border-slate-300 pdf-container ${isExporting ? 'w-[1100px] mx-auto shadow-none' : 'w-full shadow-2xl'}`}>
+          <div className={`flex justify-between items-start border-b-4 border-slate-900 pb-6 mb-8 gap-6 ${isExporting ? 'flex-row' : 'flex-col md:flex-row'}`} style={{ pageBreakInside: 'avoid' }}>
+            <div className={`flex-1 ${isExporting ? '' : 'w-full'}`}>
+              <h1 className={`font-black text-slate-900 mb-4 tracking-tighter leading-snug ${isExporting ? 'text-3xl' : 'text-2xl md:text-3xl'}`}>
+                {headerInfo.projectName || "水電工程估價單"}
+              </h1>
+              <div className={`space-y-1.5 ${isExporting ? '' : 'p-4 bg-slate-50 rounded-lg md:bg-transparent md:p-0'}`}>
+                <p className="text-sm"><strong className="text-slate-700">承包商：</strong>{headerInfo.vendorName}</p>
+                <p className="text-sm"><strong className="text-slate-700">負責人/聯絡：</strong>{headerInfo.vendorContact} {headerInfo.vendorPhone ? `(${headerInfo.vendorPhone})` : ''}</p>
               </div>
             </div>
-            <div className="text-right space-y-1">
-              <div className="bg-slate-100 p-3 rounded-md mb-2 inline-block text-left min-w-[220px]">
-                <p className="text-xs font-bold text-slate-500 uppercase mb-1 border-b border-slate-200">業主資料</p>
-                <p className="text-sm font-bold">{headerInfo.clientContact || '尚未輸入'}</p>
-                <p className="text-sm">{headerInfo.clientPhone}</p>
-                {headerInfo.clientTaxId && <p className="text-sm">統編：{headerInfo.clientTaxId}</p>}
+            <div className={`space-y-2 ${isExporting ? 'text-right' : 'text-left md:text-right w-full md:w-auto'}`}>
+              <div
+                className={`p-4 md:p-3 rounded-lg mb-2 inline-block text-left ${isExporting ? 'bg-white border-2 border-slate-900 min-w-[220px]' : 'bg-blue-50/50 md:bg-slate-100 min-w-full md:min-w-[220px]'}`}
+                style={{ pageBreakInside: 'avoid' }}
+              >
+                <p className={`text-xs font-bold uppercase mb-2 md:mb-1 border-b border-slate-200 pb-1 ${isExporting ? 'text-black' : 'text-slate-500'}`}>業主資料</p>
+                <p className="text-base md:text-sm font-bold text-slate-800">{headerInfo.clientContact || '尚未輸入'}</p>
+                <p className="text-sm text-slate-600">{headerInfo.clientPhone}</p>
+                {headerInfo.clientTaxId && <p className="text-sm text-slate-600 tracking-wide font-mono">統編：{headerInfo.clientTaxId}</p>}
               </div>
-              <p className="text-xs text-slate-400">報價日期：{new Date().toLocaleDateString()}</p>
+              <p className="text-xs text-slate-400 font-medium ml-1 md:ml-0">報價日期：{new Date().toLocaleDateString()}</p>
             </div>
           </div>
 
@@ -497,6 +511,7 @@ const App: React.FC = () => {
             onTaxRateChange={setTaxRate}
             managementRate={managementRate}
             onManagementRateChange={setManagementRate}
+            readOnly={isExporting}
           />
 
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
